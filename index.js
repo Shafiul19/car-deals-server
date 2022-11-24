@@ -43,19 +43,21 @@ async function run() {
     const usersCollection = client.db('carDeals').collection('users');
 
     // jwt token
-    app.get('/jwt', async (req, res) => {
-        const email = req.query.email;
-        const query = { email: email };
-        const user = await usersCollection.findOne(query);
-        if (user) {
-            const token = jwt.sign({ email }, process.env.ACCESS_TOKEN);
-            return res.send({ accessToken: token });
-        }
-        console.log(user);
-        res.status(403).send({ accessToken: '' })
-    })
+    // app.get('/jwt', async (req, res) => {
+    //     const email = req.query.email;
+    //     const query = { email: email };
+    //     const user = await usersCollection.findOne(query);
+    //     if (user) {
+    //         const token = jwt.sign({ email }, process.env.ACCESS_TOKEN);
+    //         return res.send({ accessToken: token });
+    //     }
+    //     console.log(user);
+    //     res.status(403).send({ accessToken: '' })
+    // })
+
+
     // All user
-    app.get('/users', verifyJWT, async (req, res) => {
+    app.get('/users', async (req, res) => {
         const query = {};
         const users = await usersCollection.find(query).toArray();
         res.send(users)
@@ -67,6 +69,13 @@ async function run() {
         const query = { email };
         const user = await usersCollection.findOne(query);
         res.send({ isAdmin: user?.role === 'admin' })
+    })
+    // seller
+    app.get('/users/seller/:email', async (req, res) => {
+        const email = req.params.email;
+        const query = { email };
+        const user = await usersCollection.findOne(query);
+        res.send({ isSeller: user?.role === 'seller' })
     })
 
     // save user to database
