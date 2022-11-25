@@ -43,6 +43,13 @@ async function run() {
         res.send(products);
     })
 
+    // advertised products
+
+    // app.get('/advertisedproduct', async (req, res) => {
+    //     const query = { advertise: true, status: "available" }
+    //     const advertisedproduct= a
+    // })
+
 
     // add products
     app.post('/products', async (req, res) => {
@@ -76,6 +83,21 @@ async function run() {
         const users = await usersCollection.find(query).toArray();
         res.send(users)
     })
+    // all seller
+    app.get('/allsellers', async (req, res) => {
+        const query = { role: 'seller' }
+        const allSeller = await usersCollection.find(query).toArray();
+        res.send(allSeller)
+    })
+
+    //  all buyers
+
+    app.get('/allbuyers', async (req, res) => {
+        const query = { role: 'buyer' }
+        const allBuyers = await usersCollection.find(query).toArray();
+        res.send(allBuyers)
+    })
+
     // Admin 
 
     app.get('/users/admin/:email', async (req, res) => {
