@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
+const { query } = require('express');
 require('dotenv').config();
 
 
@@ -35,10 +36,22 @@ async function run() {
         res.send(categories)
     })
     // products
+    app.get('/myproducts', async (req, res) => {
+        const email = req.query.email;
+        const query = { sellerEmail: email };
+        const products = await productsCollection.find(query).toArray();
+        res.send(products);
+    })
+    // add products
     app.post('/products', async (req, res) => {
+        const email = req.query.email;
+        const query = { email: email, role: "seller" }
+        const role = await usersCollection.findOne(query);
         const product = req.body;
-        const result = await productsCollection.insertOne(product);
-        res.send(result);
+        if (role) {
+            const result = await productsCollection.insertOne(product);
+            res.send(result);
+        }
     })
 
     // All user
