@@ -42,6 +42,13 @@ async function run() {
         const products = await productsCollection.find(query).toArray();
         res.send(products);
     })
+    // deleting product from my product 
+    app.delete('/myproducts/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = { _id: ObjectId(id) };
+        const result = await productsCollection.deleteOne(filter);
+        res.send(result);
+    })
 
     // advertised products
 
