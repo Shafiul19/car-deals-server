@@ -42,6 +42,8 @@ async function run() {
         const products = await productsCollection.find(query).toArray();
         res.send(products);
     })
+
+
     // add products
     app.post('/products', async (req, res) => {
         const email = req.query.email;
@@ -52,6 +54,20 @@ async function run() {
             const result = await productsCollection.insertOne(product);
             res.send(result);
         }
+    })
+
+    // update product
+    app.put('/myproducts/:id', async (req, res) => {
+        id = req.params.id;
+        const filter = { _id: ObjectId(id) }
+        const options = { upsert: true };
+        const updatedDoc = {
+            $set: {
+                advertise: true
+            }
+        }
+        const result = await productsCollection.updateOne(filter, updatedDoc, options);
+        res.send(result);
     })
 
     // All user
