@@ -45,10 +45,11 @@ async function run() {
 
     // advertised products
 
-    // app.get('/advertisedproduct', async (req, res) => {
-    //     const query = { advertise: true, status: "available" }
-    //     const advertisedproduct= a
-    // })
+    app.get('/advertisedproduct', async (req, res) => {
+        const query = { advertise: true, status: "available" }
+        const advertisedproduct = await productsCollection.find(query).toArray();
+        res.send(advertisedproduct);
+    })
 
 
     // add products
