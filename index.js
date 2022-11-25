@@ -19,42 +19,27 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
-function verifyJWT(req, res, next) {
-    // console.log(req.headers.authorization);
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-        return res.status(401).send('Unauthorize Access')
-    }
 
-    const token = authHeader.split(' ')[1];
-
-    jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
-        if (err) {
-            return res.status(403).send({ message: 'forbidden access' })
-        }
-        req.decoded = decoded;
-        next();
-    })
-
-}
 
 
 async function run() {
     const usersCollection = client.db('carDeals').collection('users');
+    const categoriesCollection = client.db('carDeals').collection('categories');
+    const productsCollection = client.db('carDeals').collection('products');
 
-    // jwt token
-    // app.get('/jwt', async (req, res) => {
-    //     const email = req.query.email;
-    //     const query = { email: email };
-    //     const user = await usersCollection.findOne(query);
-    //     if (user) {
-    //         const token = jwt.sign({ email }, process.env.ACCESS_TOKEN);
-    //         return res.send({ accessToken: token });
-    //     }
-    //     console.log(user);
-    //     res.status(403).send({ accessToken: '' })
-    // })
+    // All categories
 
+    app.get('/catgories', async (req, res) => {
+        const query = {};
+        const categories = await categoriesCollection.find(query).toArray();
+        res.send(categories)
+    })
+    // products
+    app.post('/products', async (req, res) => {
+        const product = req.body;
+        const result = await productsCollection.insertOne(product);
+        res.send(result);
+    })
 
     // All user
     app.get('/users', async (req, res) => {
