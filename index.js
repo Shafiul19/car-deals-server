@@ -78,6 +78,8 @@ async function run() {
         res.send(result);
     })
 
+
+
     // All user
     app.get('/users', async (req, res) => {
         const query = {};
@@ -97,6 +99,13 @@ async function run() {
         const query = { role: 'buyer' }
         const allBuyers = await usersCollection.find(query).toArray();
         res.send(allBuyers)
+    })
+    // delete buyer
+    app.delete('/buyer/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = { _id: ObjectId(id) };
+        const result = await usersCollection.deleteOne(filter);
+        res.send(result);
     })
 
     // Admin 
