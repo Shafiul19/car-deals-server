@@ -35,6 +35,14 @@ async function run() {
         const categories = await categoriesCollection.find(query).toArray();
         res.send(categories)
     })
+    // Categorized product
+    app.get('/category/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = { category: id };
+        const result = await productsCollection.find(query).toArray();
+        res.send(result)
+    })
+
     // products
     app.get('/myproducts', async (req, res) => {
         const email = req.query.email;
