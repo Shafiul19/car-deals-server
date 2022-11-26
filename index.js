@@ -93,8 +93,15 @@ async function run() {
         const result = await productsCollection.updateOne(filter, updatedDoc, options);
         res.send(result);
     })
+    // booking get api 
+    app.get('/bookings', async (req, res) => {
+        const email = req.query.email;
+        const query = { email: email };
+        const result = await bookingsCollection.find(query).toArray();
+        res.send(result)
+    })
 
-    // book post
+    // booking post
     app.post('/booking', async (req, res) => {
         const booking = req.body;
         const result = await bookingsCollection.insertOne(booking);
