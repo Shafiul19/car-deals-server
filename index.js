@@ -163,6 +163,15 @@ async function run() {
         const result = await productsCollection.updateOne(filter, updatedDoc, options);
         res.send(result);
     })
+    // delete reported product
+    app.delete('/reportedproduct/:id', async (req, res) => {
+        const id = res.params.id;
+        const query = { _id: ObjectId(id) };
+        const result = await productsCollection.deleteOne(query);
+        res.send(result);
+    })
+
+
     //  all buyers
 
     app.get('/allbuyers', async (req, res) => {
