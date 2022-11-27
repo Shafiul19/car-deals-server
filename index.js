@@ -134,7 +134,19 @@ async function run() {
         const updateProduct = await productsCollection.updateMany({ sellerEmail: email }, updatedDoc, options);
         res.send(result);
     })
-
+    // report product
+    app.put('/reportedproduct/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = { _id: ObjectId(id) };
+        const options = { upsert: true };
+        const updatedDoc = {
+            $set: {
+                reported: true
+            }
+        }
+        const result = await productsCollection.updateOne(filter, updatedDoc, options);
+        res.send(result);
+    })
     //  all buyers
 
     app.get('/allbuyers', async (req, res) => {
