@@ -134,6 +134,12 @@ async function run() {
         const updateProduct = await productsCollection.updateMany({ sellerEmail: email }, updatedDoc, options);
         res.send(result);
     })
+    // get reported products
+    app.get('/reportedproduct', async (req, res) => {
+        const query = { reported: true };
+        const result = await productsCollection.find(query).toArray();
+        res.send(result);
+    })
     // report product
     app.put('/reportedproduct/:id', async (req, res) => {
         const id = req.params.id;
