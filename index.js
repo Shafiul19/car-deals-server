@@ -120,6 +120,20 @@ async function run() {
         const allSeller = await usersCollection.find(query).toArray();
         res.send(allSeller)
     })
+    // verify seller
+    app.put('/verifyseller/:email', async (req, res) => {
+        const email = req.params.email;
+        const filter = { email: email };
+        const options = { upsert: true };
+        const updatedDoc = {
+            $set: {
+                verified: true
+            }
+        }
+        const result = await usersCollection.updateOne(filter, updatedDoc, options);
+        const updateProduct = await productsCollection.updateMany({ sellerEmail: email }, updatedDoc, options);
+        res.send(result);
+    })
 
     //  all buyers
 
