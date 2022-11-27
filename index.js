@@ -3,6 +3,7 @@ const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 const { query } = require('express');
+const e = require('express');
 require('dotenv').config();
 
 
@@ -231,6 +232,23 @@ async function run() {
 
         const result = await usersCollection.insertOne(user);
         res.send(result);
+    })
+    // save update of update user
+    app.put("/user/:email", async (req, res) => {
+        try {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user
+            }
+            const result = await usersCollection.updateOne(filter, updateDoc, options)
+            res.send(result)
+        }
+        catch (err) {
+            console.log(err);
+        }
     })
 }
 
