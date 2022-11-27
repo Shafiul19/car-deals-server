@@ -76,7 +76,10 @@ async function run() {
         const product = req.body;
         if (role) {
             const result = await productsCollection.insertOne(product);
-            res.send(result);
+            return res.send(result);
+        }
+        else {
+            return res.status(403).send({ message: 'You are not a seller' })
         }
     })
 
@@ -103,9 +106,16 @@ async function run() {
 
     // booking post
     app.post('/booking', async (req, res) => {
+        const email = req.query.email;
+        const filter = { role: "buyer", email: email };
+        const buyer = await usersCollection.findOne(filter)
         const booking = req.body;
-        const result = await bookingsCollection.insertOne(booking);
-        res.send(result);
+        if (buyer) {
+            const result = await bookingsCollection.insertOne(booking);
+            return res.send(result);
+        } else {
+            return res.status(403).send({ message: 'You are not a buyer' })
+        }
     })
 
     // All user
