@@ -17,6 +17,34 @@ app.use(cors());
 
 app.use(express.json())
 
+// Verify Token
+function verifyToken(req, res, next) {
+    const authorizaion = req.headers.authorizaion;
+    // console.log('authorizaion', authorizaion);
+    if (!authorizaion) {
+        return res.status(401).send({
+            message: 'No valid Auth Headers',
+            status: 401
+        })
+    }
+    const token = authorizaion.split(" ")[1];
+    console.log(token);
+
+    // verify the token
+    jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({
+                message: `Invalid Token`,
+                status: 401
+            })
+        }
+        req.decoded = decoded;
+        // req.yourName = decoded;
+        // req.jwtverifiedToken = decoded;
+        return next();
+    })
+}
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.xuxjswq.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
@@ -29,6 +57,62 @@ async function run() {
     const categoriesCollection = client.db('carDeals').collection('categories');
     const productsCollection = client.db('carDeals').collection('products');
     const bookingsCollection = client.db('carDeals').collection('bookings')
+
+    // verifyAdmin
+    async function verifyAdmin(req, res, next) {
+        const requester = req.decoded?.email;
+
+        const requesterInfo = await usersCollection.findOne({ email: requester })
+
+        const requesterRole = requesterInfo?.role;
+        console.log(`requesterRole `, requesterRole);
+
+        if (!requesterInfo?.role === 'admin') {
+            return res.status(401).send({
+                message: `You are not admin`,
+                status: 401
+            })
+        }
+        return next();
+    }
+
+    // verifySeller
+    async function verifySeller(req, res, next) {
+        const requester = req.decoded?.email;
+
+        const requesterInfo = await usersCollection.findOne({ email: requester })
+
+        const requesterRole = requesterInfo?.role;
+        console.log(`requesterRole `, requesterRole);
+
+        if (!requesterInfo?.role === 'seller') {
+            return res.status(401).send({
+                message: `You are not seller`,
+                status: 401
+            })
+        }
+        return next();
+    }
+
+    // verifyBuyer
+
+    async function verifyBuyer(req, res, next) {
+        const requester = req.decoded?.email;
+
+        const requesterInfo = await usersCollection.findOne({ email: requester })
+
+        const requesterRole = requesterInfo?.role;
+        console.log(`requesterRole `, requesterRole);
+
+        if (!requesterInfo?.role === 'buyer') {
+            return res.status(401).send({
+                message: `You are not buyer`,
+                status: 401
+            })
+        }
+        return next();
+    }
+
 
     // All categories
 
@@ -46,14 +130,14 @@ async function run() {
     })
 
     // products
-    app.get('/myproducts', async (req, res) => {
+    app.get('/myproducts', verifyToken, verifySeller, async (req, res) => {
         const email = req.query.email;
         const query = { sellerEmail: email };
         const products = await productsCollection.find(query).toArray();
         res.send(products);
     })
     // deleting product from my product 
-    app.delete('/myproducts/:id', async (req, res) => {
+    app.delete('/myproducts/:id', verifyToken, verifySeller, async (req, res) => {
         const id = req.params.id;
         const filter = { _id: ObjectId(id) };
         const result = await productsCollection.deleteOne(filter);
@@ -70,7 +154,7 @@ async function run() {
 
 
     // add products
-    app.post('/products', async (req, res) => {
+    app.post('/products', verifyToken, verifySeller, async (req, res) => {
         const email = req.query.email;
         const query = { email: email, role: "seller" }
         const role = await usersCollection.findOne(query);
@@ -85,7 +169,7 @@ async function run() {
     })
 
     // update product
-    app.put('/myproducts/:id', async (req, res) => {
+    app.put('/myproducts/:id', verifyToken, verifySeller, async (req, res) => {
         id = req.params.id;
         const filter = { _id: ObjectId(id) }
         const options = { upsert: true };
@@ -98,7 +182,7 @@ async function run() {
         res.send(result);
     })
     // booking get api 
-    app.get('/bookings', async (req, res) => {
+    app.get('/bookings', verifyToken, verifyBuyer, async (req, res) => {
         const email = req.query.email;
         const query = { email: email };
         const result = await bookingsCollection.find(query).toArray();
@@ -126,13 +210,13 @@ async function run() {
         res.send(users)
     })
     // all seller
-    app.get('/allsellers', async (req, res) => {
+    app.get('/allsellers', verifyToken, verifyAdmin, async (req, res) => {
         const query = { role: 'seller' }
         const allSeller = await usersCollection.find(query).toArray();
         res.send(allSeller)
     })
     // verify seller
-    app.put('/verifyseller/:email', async (req, res) => {
+    app.put('/verifyseller/:email', verifyToken, verifyAdmin, async (req, res) => {
         const email = req.params.email;
         const filter = { email: email };
         const options = { upsert: true };
@@ -146,7 +230,7 @@ async function run() {
         res.send(result);
     })
     // get reported products
-    app.get('/reportedproduct', async (req, res) => {
+    app.get('/reportedproduct', verifyToken, verifyAdmin, async (req, res) => {
         const query = { reported: true };
         const result = await productsCollection.find(query).toArray();
         res.send(result);
@@ -165,8 +249,9 @@ async function run() {
         res.send(result);
     })
     // delete reported product
-    app.delete('/reportedproduct/:id', async (req, res) => {
-        const id = res.params.id;
+    app.delete('/reportedproduct/:id', verifyToken, verifyAdmin, async (req, res) => {
+        const id = req.params.id;
+        console.log(id);
         const query = { _id: ObjectId(id) };
         const result = await productsCollection.deleteOne(query);
         res.send(result);
@@ -175,13 +260,13 @@ async function run() {
 
     //  all buyers
 
-    app.get('/allbuyers', async (req, res) => {
+    app.get('/allbuyers', verifyToken, verifyAdmin, async (req, res) => {
         const query = { role: 'buyer' }
         const allBuyers = await usersCollection.find(query).toArray();
         res.send(allBuyers)
     })
     // delete buyer
-    app.delete('/buyer/:id', async (req, res) => {
+    app.delete('/buyer/:id', verifyToken, verifyAdmin, async (req, res) => {
         const id = req.params.id;
         const filter = { _id: ObjectId(id) };
         const result = await usersCollection.deleteOne(filter);
@@ -189,7 +274,7 @@ async function run() {
     })
 
     // delete seller 
-    app.delete('/seller/:id', async (req, res) => {
+    app.delete('/seller/:id', verifyToken, verifyAdmin, async (req, res) => {
         const id = req.params.id;
         const filter = { _id: ObjectId(id) }
         const result = await usersCollection.deleteOne(filter);
@@ -243,8 +328,18 @@ async function run() {
             const updateDoc = {
                 $set: user
             }
-            const result = await usersCollection.updateOne(filter, updateDoc, options)
-            res.send(result)
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            // res.send(result)
+            const token = jwt.sign(
+                { email: email },
+                process.env.ACCESS_TOKEN,
+                { expiresIn: "1d" }
+            )
+            res.send({
+                status: "success",
+                message: "Token Created Successfully",
+                data: token
+            })
         }
         catch (err) {
             console.log(err);
