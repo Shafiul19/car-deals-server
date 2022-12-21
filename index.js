@@ -303,21 +303,8 @@ async function run() {
         const user = await usersCollection.findOne(query);
         res.send({ isBuyer: user?.role === 'buyer' })
     })
-    // save user to database
-    app.post('/users', async (req, res) => {
-        const user = req.body;
-        const query = { email: user.email };
-
-        const existingUser = await usersCollection.find(query).toArray();
-
-        if (existingUser.length) {
-            return res.send({ acknowledged: false })
-        }
 
 
-        const result = await usersCollection.insertOne(user);
-        res.send(result);
-    })
     // save update of update user
     app.put("/user/:email", async (req, res) => {
         try {
