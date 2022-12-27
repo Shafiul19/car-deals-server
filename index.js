@@ -170,7 +170,7 @@ async function run() {
 
     // update product
     app.put('/myproducts/:id', verifyToken, verifySeller, async (req, res) => {
-        id = req.params.id;
+        const id = req.params.id;
         const filter = { _id: ObjectId(id) }
         const options = { upsert: true };
         const updatedDoc = {
